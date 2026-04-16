@@ -42,12 +42,17 @@ async function seedInvoices() {
     );
   `;
 
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS invoices_unique_entry
+    ON invoices (customer_id, amount, status, date);
+  `;
+
   const insertedInvoices = await Promise.all(
     invoices.map(
       (invoice) => sql`
         INSERT INTO invoices (customer_id, amount, status, date)
         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-        ON CONFLICT (id) DO NOTHING;
+        ON CONFLICT (customer_id, amount, status, date) DO NOTHING;
       `,
     ),
   );
